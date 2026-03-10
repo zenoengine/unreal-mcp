@@ -98,21 +98,3 @@ async def replace_selected_with_bp(
         "blueprint_asset_path": blueprint_asset_path
     }
     return await send_unreal_action(EDITOR_ACTIONS_MODULE, params)
-
-@editor_mcp.tool(
-    name="get_selected_bp_nodes",
-    description="Gets information about currently selected blueprint nodes in the editor.",
-    tags={"unreal", "editor", "blueprint", "selection", "nodes"}
-)
-async def get_selected_bp_nodes() -> dict:
-    """Gets information about currently selected blueprint nodes in the editor."""
-    return await send_unreal_action(EDITOR_ACTIONS_MODULE, {})
-
-@editor_mcp.tool(
-    name="get_selected_bp_node_infos",
-    description="Gets detailed info (including pin connections) about currently selected blueprint nodes for LLM/external tools.",
-    tags={"unreal", "editor", "blueprint", "selection", "nodes", "connections", "llm"}
-)
-async def get_selected_bp_node_infos() -> dict:
-    """Gets detailed info (including pin connections) about currently selected blueprint nodes for LLM/external tools."""
-    return await send_unreal_action(EDITOR_ACTIONS_MODULE, {})
