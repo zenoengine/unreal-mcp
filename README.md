@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/GenOrca/Screenshot/refs/heads/main/unreal-mcp/Screenshot%202025-06-02%20025106.png" width="128" alt="Unreal MCP Logo">
+  <img src="https://raw.githubusercontent.com/GenOrca/Screenshot/refs/heads/main/unreal-mcp/logo.png" width="128" alt="Unreal MCP Logo">
 </p>
 
 <h1 align="center">Unreal MCP</h1>
