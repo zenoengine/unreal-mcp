@@ -48,3 +48,51 @@ def ue_get_output_log(line_count: int = 50, keyword: str = None) -> str:
         })
     except Exception as e:
         return json.dumps({"success": False, "message": str(e), "traceback": traceback.format_exc()})
+
+def ue_execute_console_command(command: str) -> str:
+    """Executes a console command in the Unreal Engine editor and returns any new log output."""
+    try:
+        if not command or not command.strip():
+            return json.dumps({"success": False, "message": "Required parameter 'command' is missing or empty."})
+
+        # Record log position before command execution
+        log_line_count = 0
+        latest_log = None
+        try:
+            log_dir = unreal.Paths.project_log_dir()
+            log_files = glob.glob(os.path.join(log_dir, "*.log"))
+            if log_files:
+                latest_log = max(log_files, key=os.path.getmtime)
+                with open(latest_log, 'r', encoding='utf-8', errors='replace') as f:
+                    for log_line_count, _ in enumerate(f, 1):
+                        pass
+        except Exception:
+            pass
+
+        # Execute the console command
+        world = unreal.EditorLevelLibrary.get_editor_world()
+        unreal.SystemLibrary.execute_console_command(world, command)
+
+        # Capture new log output produced by the command
+        output = ""
+        output_line_count = 0
+        if latest_log:
+            try:
+                with open(latest_log, 'r', encoding='utf-8', errors='replace') as f:
+                    all_lines = f.readlines()
+                new_lines = all_lines[log_line_count:]
+                # Cap at 100 lines to prevent huge responses
+                capped = new_lines[:100]
+                output_line_count = len(new_lines)
+                output = "".join(l.rstrip('\r') for l in capped)
+            except Exception:
+                pass
+
+        return json.dumps({
+            "success": True,
+            "command": command,
+            "output_line_count": output_line_count,
+            "output": output
+        })
+    except Exception as e:
+        return json.dumps({"success": False, "message": str(e), "traceback": traceback.format_exc()})

@@ -27,6 +27,22 @@ async def get_output_log(
     return await send_unreal_action(UTIL_ACTIONS_MODULE, params)
 
 @util_mcp.tool(
+    name="execute_console_command",
+    description="Executes a console command (Cmd) in the Unreal Engine editor. "
+                "Runs the command via the editor world context and captures any resulting log output. "
+                "Examples: 'stat fps', 'stat unit', 'r.SetRes 1920x1080', 'obj list', 'log list'. "
+                "Note: some commands produce no log output.",
+    tags={"unreal", "console", "cmd", "command", "utility"}
+)
+async def execute_console_command(
+    command: Annotated[str, Field(description="The console command to execute. e.g. 'stat fps', 'obj list'.")]
+) -> dict:
+    """Executes a console command in the Unreal Engine editor."""
+    if not command or not command.strip():
+        raise ToolInputError("The 'command' parameter must not be empty.")
+    return await send_unreal_action(UTIL_ACTIONS_MODULE, {"command": command})
+
+@util_mcp.tool(
     name="execute_python",
     description=(
         "Executes arbitrary Python code in the Unreal Engine editor's Python environment. "
