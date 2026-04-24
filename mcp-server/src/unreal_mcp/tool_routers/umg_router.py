@@ -65,7 +65,7 @@ async def add_widget(
     name="set_widget_properties",
     description=(
         "Sets properties on a widget within a Widget Blueprint. "
-        "Common widget properties: text (str), visibility (str: visible/collapsed/hidden), "
+        "Common widget properties: text (str), visibility (str: visible/collapsed/hidden/hit_test_invisible/self_hit_test_invisible), "
         "color_and_opacity ([r,g,b,a]), background_color ([r,g,b,a]), font_size (int), hint_text (str), percent (float). "
         "Canvas slot properties (when parent is CanvasPanel): slot_position ([x,y]), slot_size ([w,h]), "
         "slot_alignment ([x,y]), slot_z_order (int)."

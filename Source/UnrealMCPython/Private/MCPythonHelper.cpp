@@ -1913,6 +1913,8 @@ FString UMCPythonHelper::UmgAddWidget(UBlueprint* WidgetBP, const FString& Widge
         ActualParent = RootPanel->GetName();
     }
 
+    FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(WB);
+
     TSharedPtr<FJsonObject> Result = MakeShared<FJsonObject>();
     Result->SetBoolField(TEXT("success"), true);
     Result->SetStringField(TEXT("widget_name"), NewWidget->GetName());
@@ -1958,6 +1960,8 @@ FString UMCPythonHelper::UmgRemoveWidget(UBlueprint* WidgetBP, const FString& Wi
     {
         return UmgErrorJson(FString::Printf(TEXT("Cannot remove '%s': not attached to a panel or root."), *WidgetName));
     }
+
+    FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(WB);
 
     TSharedPtr<FJsonObject> Result = MakeShared<FJsonObject>();
     Result->SetBoolField(TEXT("success"), true);

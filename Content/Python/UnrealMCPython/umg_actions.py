@@ -200,7 +200,8 @@ def ue_set_widget_properties(asset_path: str = None, widget_name: str = None, pr
                     except Exception as slot_err:
                         errors[f"slot_{slot_key}"] = str(slot_err)
 
-        unreal.EditorAssetLibrary.save_asset(widget_bp.get_path_name())
+        if len(errors) == 0:
+            unreal.EditorAssetLibrary.save_asset(widget_bp.get_path_name())
 
         return json.dumps({
             "success": len(errors) == 0,

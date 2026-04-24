@@ -165,6 +165,9 @@ public:
     static FString CompileBlueprint(UBlueprint* Blueprint);
 
     // ─── UMG Widget Blueprint Helpers ─────────────────────────────────────────
+    // UE 5.7 Python bindings mark UWidgetTree::RootWidget, AllWidgets, and
+    // ConstructWidget as protected, so direct Python access is blocked.
+    // These UFUNCTIONs proxy the calls through C++ where the members are accessible.
 
     /** Get widget tree info (root widget, all widgets) as JSON */
     UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
