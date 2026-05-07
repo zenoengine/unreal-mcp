@@ -7,6 +7,7 @@
 #include "EdGraph/EdGraphPin.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardData.h"
+#include "Components/Widget.h"
 #include "MCPythonHelper.generated.h"
 
 
@@ -162,4 +163,55 @@ public:
     /** Compile a Blueprint and return the result */
     UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
     static FString CompileBlueprint(UBlueprint* Blueprint);
+
+    /** Set any CDO property including inherited C++ UPROPERTYs (e.g. DefaultPawnClass on GameModeBase BPs).
+     *  Uses TFieldIterator with IncludeSuper to bypass the Python set_editor_property limitation. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString SetBlueprintCDOProperty(UBlueprint* Blueprint, const FString& PropertyName, const FString& ValueStr);
+
+    // ─── UMG Widget Blueprint Helpers ─────────────────────────────────────────
+    // UE 5.7 Python bindings mark UWidgetTree::RootWidget, AllWidgets, and
+    // ConstructWidget as protected, so direct Python access is blocked.
+    // These UFUNCTIONs proxy the calls through C++ where the members are accessible.
+
+    /** Get widget tree info (root widget, all widgets) as JSON */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString UmgGetWidgetInfo(UBlueprint* WidgetBP);
+
+    /** Add a widget to the widget tree. ParentName="" means auto-root or root panel. Returns JSON. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString UmgAddWidget(UBlueprint* WidgetBP, const FString& WidgetType, const FString& WidgetName, const FString& ParentName);
+
+    /** Find a widget by name in the widget tree. Returns nullptr if not found. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static UWidget* UmgFindWidget(UBlueprint* WidgetBP, const FString& WidgetName);
+
+    /** Remove a widget from the widget tree. Returns JSON. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString UmgRemoveWidget(UBlueprint* WidgetBP, const FString& WidgetName);
+
+    /** Set bIsVariable on a named widget so Blueprint can access it as a variable. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString UmgSetWidgetIsVariable(UBlueprint* WidgetBP, const FString& WidgetName, bool bIsVariable);
+
+    /** Add a component to a Blueprint's SCS.
+     *  ComponentClassPath e.g. "/Script/Engine.CameraComponent"
+     *  ParentComponentName: name of the parent SCS node, or "" to attach to root */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString AddComponentToBlueprint(UBlueprint* Blueprint,
+        const FString& ComponentClassPath,
+        const FString& ComponentName,
+        float LocationX, float LocationY, float LocationZ,
+        float RotationPitch, float RotationYaw, float RotationRoll,
+        const FString& ParentComponentName);
+
+    /** Set a pin default on a blueprint node.
+     *  For object pins, Value should be an asset path like "/Engine/BasicShapes/Sphere.Sphere".
+     *  For numeric/bool pins, Value is the literal string like "3.14" or "true". */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString SetBlueprintNodePinDefault(UBlueprint* Blueprint,
+        const FString& GraphName,
+        const FString& NodeName,
+        const FString& PinName,
+        const FString& Value);
 };
