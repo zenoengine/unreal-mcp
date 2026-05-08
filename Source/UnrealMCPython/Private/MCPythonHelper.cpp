@@ -1047,6 +1047,8 @@ FString UMCPythonHelper::GetBlueprintGraphInfo(UBlueprint* Blueprint, const FStr
                 PinObj->SetStringField(TEXT("sub_type"), Pin->PinType.PinSubCategoryObject->GetName());
             if (!Pin->DefaultValue.IsEmpty())
                 PinObj->SetStringField(TEXT("default_value"), Pin->DefaultValue);
+            if (Pin->DefaultObject)
+                PinObj->SetStringField(TEXT("default_object"), Pin->DefaultObject->GetPathName());
 
             // Linked pins
             if (Pin->LinkedTo.Num() > 0)
