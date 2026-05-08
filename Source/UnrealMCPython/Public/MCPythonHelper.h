@@ -205,6 +205,13 @@ public:
         float RotationPitch, float RotationYaw, float RotationRoll,
         const FString& ParentComponentName);
 
+    /** Set the canvas position of a node in a Blueprint graph by node name. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString SetBlueprintNodePosition(UBlueprint* Blueprint,
+        const FString& GraphName,
+        const FString& NodeName,
+        float PosX, float PosY);
+
     /** Set a pin default on a blueprint node.
      *  For object pins, Value should be an asset path like "/Engine/BasicShapes/Sphere.Sphere".
      *  For numeric/bool pins, Value is the literal string like "3.14" or "true". */

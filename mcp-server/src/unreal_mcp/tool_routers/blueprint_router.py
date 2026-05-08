@@ -199,3 +199,50 @@ async def compile_blueprint(
     """Compiles a Blueprint and returns the result."""
     params = {"asset_path": asset_path}
     return await send_unreal_action(BP_ACTIONS_MODULE, params)
+
+
+@blueprint_mcp.tool(
+    name="set_blueprint_node_position",
+    description="Moves a single Blueprint graph node to the given canvas coordinates. "
+                "Use get_blueprint_graph_info to find node names first.",
+    tags={"unreal", "blueprint", "node", "position", "layout", "write"}
+)
+async def set_blueprint_node_position(
+    asset_path: Annotated[str, Field(description="Path to the Blueprint asset.")],
+    node_name: Annotated[str, Field(description="Name of the node to reposition.")],
+    pos_x: Annotated[float, Field(description="X position on the graph canvas.")] = 0.0,
+    pos_y: Annotated[float, Field(description="Y position on the graph canvas.")] = 0.0,
+    graph_name: Annotated[str, Field(description="Name of the graph. Usually 'EventGraph'.")] = "EventGraph"
+) -> dict:
+    return await send_unreal_action(BP_ACTIONS_MODULE, {
+        "asset_path": asset_path,
+        "graph_name": graph_name,
+        "node_name": node_name,
+        "pos_x": pos_x,
+        "pos_y": pos_y,
+    })
+
+
+@blueprint_mcp.tool(
+    name="auto_layout_graph",
+    description=(
+        "Automatically lays out all nodes in a Blueprint graph using topological sort. "
+        "Entry nodes (BeginPlay, Tick, custom events, input events) are placed at column 0; "
+        "each subsequent execution step moves one column to the right. "
+        "Within a column, nodes are stacked vertically. "
+        "x_step and y_step control pixel spacing between columns and rows respectively."
+    ),
+    tags={"unreal", "blueprint", "layout", "graph", "auto", "write"}
+)
+async def auto_layout_graph(
+    asset_path: Annotated[str, Field(description="Path to the Blueprint asset.")],
+    graph_name: Annotated[str, Field(description="Name of the graph. Usually 'EventGraph'.")] = "EventGraph",
+    x_step: Annotated[float, Field(description="Horizontal pixel spacing between columns.")] = 380.0,
+    y_step: Annotated[float, Field(description="Vertical pixel spacing between rows.")] = 200.0,
+) -> dict:
+    return await send_unreal_action(BP_ACTIONS_MODULE, {
+        "asset_path": asset_path,
+        "graph_name": graph_name,
+        "x_step": x_step,
+        "y_step": y_step,
+    })
