@@ -2287,6 +2287,36 @@ FString UMCPythonHelper::AddComponentToBlueprint(UBlueprint* Blueprint,
     return SerializeJsonObj(R);
 }
 
+// ─── SetBlueprintNodePosition UFUNCTION ──────────────────────────────────────
+
+FString UMCPythonHelper::SetBlueprintNodePosition(UBlueprint* Blueprint,
+    const FString& GraphName, const FString& NodeName, float PosX, float PosY)
+{
+    if (!Blueprint)
+        return MakeJsonError(TEXT("Invalid Blueprint."));
+
+    UEdGraph* Graph = FindGraphByName(Blueprint, GraphName);
+    if (!Graph)
+        return MakeJsonError(FString::Printf(TEXT("Graph '%s' not found."), *GraphName));
+
+    UEdGraphNode* Node = FindBPNodeByName(Graph, NodeName);
+    if (!Node)
+        return MakeJsonError(FString::Printf(TEXT("Node '%s' not found in graph '%s'."), *NodeName, *GraphName));
+
+    Node->Modify();
+    Node->NodePosX = (int32)PosX;
+    Node->NodePosY = (int32)PosY;
+
+    FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
+
+    TSharedPtr<FJsonObject> R = MakeShared<FJsonObject>();
+    R->SetBoolField(TEXT("success"), true);
+    R->SetStringField(TEXT("node"), NodeName);
+    R->SetNumberField(TEXT("pos_x"), PosX);
+    R->SetNumberField(TEXT("pos_y"), PosY);
+    return SerializeJsonObj(R);
+}
+
 // ─── SetBlueprintNodePinDefault ──────────────────────────────────────────────
 
 FString UMCPythonHelper::SetBlueprintNodePinDefault(UBlueprint* Blueprint,
