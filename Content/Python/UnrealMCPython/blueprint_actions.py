@@ -223,3 +223,86 @@ def ue_compile_blueprint(asset_path: str = None) -> str:
         return result_json
     except Exception as e:
         return json.dumps({"success": False, "message": str(e), "traceback": traceback.format_exc()})
+
+
+# ─── Component Management ──────────────────────────────────────────────────────
+
+def ue_list_blueprint_components(asset_path: str = None) -> str:
+    """Lists all SCS components on a Blueprint."""
+    if asset_path is None:
+        return json.dumps({"success": False, "message": "Required parameter 'asset_path' is missing."})
+    try:
+        bp, err = _load_asset(asset_path, unreal.Blueprint)
+        if err:
+            return err
+        return unreal.MCPythonHelper.list_blueprint_components(bp)
+    except Exception as e:
+        return json.dumps({"success": False, "message": str(e), "traceback": traceback.format_exc()})
+
+
+def ue_add_component_to_blueprint(asset_path: str = None,
+                                   component_class_path: str = None,
+                                   component_name: str = None,
+                                   location_x: float = 0.0, location_y: float = 0.0, location_z: float = 0.0,
+                                   rotation_pitch: float = 0.0, rotation_yaw: float = 0.0, rotation_roll: float = 0.0,
+                                   parent_component_name: str = "") -> str:
+    """Adds a component to a Blueprint's SCS."""
+    if asset_path is None:
+        return json.dumps({"success": False, "message": "Required parameter 'asset_path' is missing."})
+    if component_class_path is None:
+        return json.dumps({"success": False, "message": "Required parameter 'component_class_path' is missing."})
+    if component_name is None:
+        return json.dumps({"success": False, "message": "Required parameter 'component_name' is missing."})
+    try:
+        bp, err = _load_asset(asset_path, unreal.Blueprint)
+        if err:
+            return err
+        result = unreal.MCPythonHelper.add_component_to_blueprint(
+            bp, component_class_path, component_name,
+            location_x, location_y, location_z,
+            rotation_pitch, rotation_yaw, rotation_roll,
+            parent_component_name or ""
+        )
+        unreal.EditorAssetLibrary.save_asset(bp.get_path_name(), only_if_is_dirty=False)
+        return result
+    except Exception as e:
+        return json.dumps({"success": False, "message": str(e), "traceback": traceback.format_exc()})
+
+
+def ue_remove_component_from_blueprint(asset_path: str = None, component_name: str = None) -> str:
+    """Removes a component by variable name from a Blueprint's SCS."""
+    if asset_path is None:
+        return json.dumps({"success": False, "message": "Required parameter 'asset_path' is missing."})
+    if component_name is None:
+        return json.dumps({"success": False, "message": "Required parameter 'component_name' is missing."})
+    try:
+        bp, err = _load_asset(asset_path, unreal.Blueprint)
+        if err:
+            return err
+        result = unreal.MCPythonHelper.remove_component_from_blueprint(bp, component_name)
+        unreal.EditorAssetLibrary.save_asset(bp.get_path_name(), only_if_is_dirty=False)
+        return result
+    except Exception as e:
+        return json.dumps({"success": False, "message": str(e), "traceback": traceback.format_exc()})
+
+
+def ue_set_component_property(asset_path: str = None, component_name: str = None,
+                               property_name: str = None, value: str = None) -> str:
+    """Sets a property on a component template in a Blueprint's SCS."""
+    if asset_path is None:
+        return json.dumps({"success": False, "message": "Required parameter 'asset_path' is missing."})
+    if component_name is None:
+        return json.dumps({"success": False, "message": "Required parameter 'component_name' is missing."})
+    if property_name is None:
+        return json.dumps({"success": False, "message": "Required parameter 'property_name' is missing."})
+    if value is None:
+        return json.dumps({"success": False, "message": "Required parameter 'value' is missing."})
+    try:
+        bp, err = _load_asset(asset_path, unreal.Blueprint)
+        if err:
+            return err
+        result = unreal.MCPythonHelper.set_component_property(bp, component_name, property_name, value)
+        unreal.EditorAssetLibrary.save_asset(bp.get_path_name(), only_if_is_dirty=False)
+        return result
+    except Exception as e:
+        return json.dumps({"success": False, "message": str(e), "traceback": traceback.format_exc()})
