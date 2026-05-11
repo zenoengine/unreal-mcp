@@ -194,6 +194,27 @@ public:
     UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
     static FString UmgSetWidgetIsVariable(UBlueprint* WidgetBP, const FString& WidgetName, bool bIsVariable);
 
+    /** Set CanvasPanelSlot layout (anchors + position/size) in one call.
+     *  AnchorMin/Max: 0..1 fractions. OffsetX/Y: pixel offset from anchor. SizeX/Y: pixel size. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString UmgSetSlotLayout(UBlueprint* WidgetBP, const FString& WidgetName,
+        float AnchorMinX, float AnchorMinY, float AnchorMaxX, float AnchorMaxY,
+        float OffsetX, float OffsetY, float SizeX, float SizeY);
+
+    /** Set font size, text color, and outline size on a TextBlock widget in one call. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString UmgSetTextStyle(UBlueprint* WidgetBP, const FString& WidgetName,
+        int32 FontSize, float ColorR, float ColorG, float ColorB, float ColorA,
+        int32 OutlineSize);
+
+    /** Get an editor property value from a widget as a JSON string. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString UmgGetWidgetProperty(UBlueprint* WidgetBP, const FString& WidgetName, const FString& PropertyName);
+
+    /** Set an editor property value on a widget from a string. Supports bool, int, float, and string properties. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString UmgSetWidgetProperty(UBlueprint* WidgetBP, const FString& WidgetName, const FString& PropertyName, const FString& Value);
+
     /** Add a component to a Blueprint's SCS.
      *  ComponentClassPath e.g. "/Script/Engine.CameraComponent"
      *  ParentComponentName: name of the parent SCS node, or "" to attach to root */
