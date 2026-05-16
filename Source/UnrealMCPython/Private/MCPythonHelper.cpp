@@ -2423,6 +2423,121 @@ FString UMCPythonHelper::AddComponentToBlueprint(UBlueprint* Blueprint,
     return SerializeJsonObj(R);
 }
 
+// ─── ListBlueprintComponents UFUNCTION ───────────────────────────────────────
+
+FString UMCPythonHelper::ListBlueprintComponents(UBlueprint* Blueprint)
+{
+    if (!Blueprint)
+        return MakeJsonError(TEXT("Invalid Blueprint."));
+
+    USimpleConstructionScript* SCS = Blueprint->SimpleConstructionScript;
+    if (!SCS)
+        return MakeJsonError(TEXT("Blueprint has no SimpleConstructionScript."));
+
+    TArray<TSharedPtr<FJsonValue>> ComponentsArr;
+    for (USCS_Node* Node : SCS->GetAllNodes())
+    {
+        if (!Node) continue;
+        TSharedPtr<FJsonObject> Obj = MakeShared<FJsonObject>();
+        Obj->SetStringField(TEXT("variable_name"), Node->GetVariableName().ToString());
+        if (Node->ComponentTemplate)
+        {
+            Obj->SetStringField(TEXT("class"), Node->ComponentTemplate->GetClass()->GetName());
+            Obj->SetBoolField(TEXT("is_native"), false);
+        }
+        else
+        {
+            Obj->SetStringField(TEXT("class"), TEXT("Unknown"));
+            Obj->SetBoolField(TEXT("is_native"), false);
+        }
+        USCS_Node* Parent = nullptr;
+        for (USCS_Node* Candidate : SCS->GetAllNodes())
+        {
+            if (Candidate && Candidate->GetChildNodes().Contains(Node))
+            {
+                Parent = Candidate;
+                break;
+            }
+        }
+        Obj->SetStringField(TEXT("parent"), Parent ? Parent->GetVariableName().ToString() : TEXT(""));
+        ComponentsArr.Add(MakeShareable(new FJsonValueObject(Obj)));
+    }
+
+    TSharedPtr<FJsonObject> R = MakeShared<FJsonObject>();
+    R->SetBoolField(TEXT("success"), true);
+    R->SetArrayField(TEXT("components"), ComponentsArr);
+    R->SetNumberField(TEXT("count"), ComponentsArr.Num());
+    return SerializeJsonObj(R);
+}
+
+// ─── RemoveComponentFromBlueprint UFUNCTION ───────────────────────────────────
+
+FString UMCPythonHelper::RemoveComponentFromBlueprint(UBlueprint* Blueprint, const FString& ComponentName)
+{
+    if (!Blueprint)
+        return MakeJsonError(TEXT("Invalid Blueprint."));
+
+    USimpleConstructionScript* SCS = Blueprint->SimpleConstructionScript;
+    if (!SCS)
+        return MakeJsonError(TEXT("Blueprint has no SimpleConstructionScript."));
+
+    USCS_Node* Node = SCS->FindSCSNode(FName(*ComponentName));
+    if (!Node)
+        return MakeJsonError(FString::Printf(TEXT("Component '%s' not found in SCS."), *ComponentName));
+
+    FString RemovedClass = Node->ComponentTemplate ? Node->ComponentTemplate->GetClass()->GetName() : TEXT("Unknown");
+
+    SCS->RemoveNodeAndPromoteChildren(Node);
+    FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+
+    TSharedPtr<FJsonObject> R = MakeShared<FJsonObject>();
+    R->SetBoolField(TEXT("success"), true);
+    R->SetStringField(TEXT("component_name"), ComponentName);
+    R->SetStringField(TEXT("class"), RemovedClass);
+    R->SetStringField(TEXT("message"), FString::Printf(TEXT("Component '%s' (%s) removed."), *ComponentName, *RemovedClass));
+    return SerializeJsonObj(R);
+}
+
+// ─── SetComponentProperty UFUNCTION ──────────────────────────────────────────
+
+FString UMCPythonHelper::SetComponentProperty(UBlueprint* Blueprint,
+    const FString& ComponentName, const FString& PropertyName, const FString& Value)
+{
+    if (!Blueprint)
+        return MakeJsonError(TEXT("Invalid Blueprint."));
+
+    USimpleConstructionScript* SCS = Blueprint->SimpleConstructionScript;
+    if (!SCS)
+        return MakeJsonError(TEXT("Blueprint has no SimpleConstructionScript."));
+
+    USCS_Node* Node = SCS->FindSCSNode(FName(*ComponentName));
+    if (!Node)
+        return MakeJsonError(FString::Printf(TEXT("Component '%s' not found in SCS."), *ComponentName));
+
+    UObject* Template = Node->ComponentTemplate;
+    if (!Template)
+        return MakeJsonError(FString::Printf(TEXT("Component '%s' has no template."), *ComponentName));
+
+    FProperty* Prop = Template->GetClass()->FindPropertyByName(FName(*PropertyName));
+    if (!Prop)
+        return MakeJsonError(FString::Printf(TEXT("Property '%s' not found on component '%s'."), *PropertyName, *ComponentName));
+
+    Template->Modify();
+    void* ValueAddr = Prop->ContainerPtrToValuePtr<void>(Template);
+    const TCHAR* ImportResult = Prop->ImportText_Direct(*Value, ValueAddr, Template, PPF_None);
+    if (!ImportResult)
+        return MakeJsonError(FString::Printf(TEXT("Failed to set property '%s' to '%s'."), *PropertyName, *Value));
+
+    FBlueprintEditorUtils::MarkBlueprintAsModified(Blueprint);
+
+    TSharedPtr<FJsonObject> R = MakeShared<FJsonObject>();
+    R->SetBoolField(TEXT("success"), true);
+    R->SetStringField(TEXT("component"), ComponentName);
+    R->SetStringField(TEXT("property"), PropertyName);
+    R->SetStringField(TEXT("value"), Value);
+    return SerializeJsonObj(R);
+}
+
 // ─── SetBlueprintNodePinDefault ──────────────────────────────────────────────
 
 FString UMCPythonHelper::SetBlueprintNodePinDefault(UBlueprint* Blueprint,

@@ -226,6 +226,25 @@ public:
         float RotationPitch, float RotationYaw, float RotationRoll,
         const FString& ParentComponentName);
 
+    /** List all SCS components on a Blueprint. Returns JSON array of {name, class, variable_name}. */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString ListBlueprintComponents(UBlueprint* Blueprint);
+
+    /** Remove a component by variable name from a Blueprint's SCS.
+     *  Promotes children to the removed node's parent (safe remove). */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString RemoveComponentFromBlueprint(UBlueprint* Blueprint, const FString& ComponentName);
+
+    /** Set a property on a component template in a Blueprint's SCS.
+     *  ComponentName: the variable name of the component (e.g. "SphereComponent").
+     *  PropertyName: the property to set (e.g. "relative_location", "sphere_radius").
+     *  Value: string representation (e.g. "(X=0,Y=0,Z=100)" or "50.0"). */
+    UFUNCTION(BlueprintCallable, Category="Editor|MCPython")
+    static FString SetComponentProperty(UBlueprint* Blueprint,
+        const FString& ComponentName,
+        const FString& PropertyName,
+        const FString& Value);
+
     /** Set a pin default on a blueprint node.
      *  For object pins, Value should be an asset path like "/Engine/BasicShapes/Sphere.Sphere".
      *  For numeric/bool pins, Value is the literal string like "3.14" or "true". */

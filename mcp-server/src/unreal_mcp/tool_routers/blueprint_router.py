@@ -199,3 +199,99 @@ async def compile_blueprint(
     """Compiles a Blueprint and returns the result."""
     params = {"asset_path": asset_path}
     return await send_unreal_action(BP_ACTIONS_MODULE, params)
+
+
+# ─── Component Management Tools ───────────────────────────────────────────────
+
+@blueprint_mcp.tool(
+    name="list_blueprint_components",
+    description=(
+        "Lists all SCS (Simple Construction Script) components on a Blueprint. "
+        "Returns each component's variable name, class, and parent component name."
+    ),
+    tags={"unreal", "blueprint", "component", "list", "read"}
+)
+async def list_blueprint_components(
+    asset_path: Annotated[str, Field(description="Path to the Blueprint asset.")]
+) -> dict:
+    return await send_unreal_action(BP_ACTIONS_MODULE, {"asset_path": asset_path})
+
+
+@blueprint_mcp.tool(
+    name="add_component_to_blueprint",
+    description=(
+        "Adds a new component to a Blueprint's SCS. "
+        "component_class_path is a fully qualified UE class path such as '/Script/Engine.SphereComponent', "
+        "'/Script/Engine.CameraComponent', '/Script/Engine.StaticMeshComponent'. "
+        "component_name becomes the variable name. "
+        "parent_component_name: variable name of the parent SCS node, or empty to attach to the existing root."
+    ),
+    tags={"unreal", "blueprint", "component", "add", "write"}
+)
+async def add_component_to_blueprint(
+    asset_path: Annotated[str, Field(description="Path to the Blueprint asset.")],
+    component_class_path: Annotated[str, Field(description="UE class path (e.g. '/Script/Engine.SphereComponent').")],
+    component_name: Annotated[str, Field(description="Variable name for the new component.")],
+    location_x: Annotated[float, Field(description="Relative X offset from parent.")] = 0.0,
+    location_y: Annotated[float, Field(description="Relative Y offset from parent.")] = 0.0,
+    location_z: Annotated[float, Field(description="Relative Z offset from parent.")] = 0.0,
+    rotation_pitch: Annotated[float, Field(description="Relative pitch in degrees.")] = 0.0,
+    rotation_yaw: Annotated[float, Field(description="Relative yaw in degrees.")] = 0.0,
+    rotation_roll: Annotated[float, Field(description="Relative roll in degrees.")] = 0.0,
+    parent_component_name: Annotated[str, Field(description="Variable name of the parent component, or empty for root.")] = ""
+) -> dict:
+    return await send_unreal_action(BP_ACTIONS_MODULE, {
+        "asset_path": asset_path,
+        "component_class_path": component_class_path,
+        "component_name": component_name,
+        "location_x": location_x,
+        "location_y": location_y,
+        "location_z": location_z,
+        "rotation_pitch": rotation_pitch,
+        "rotation_yaw": rotation_yaw,
+        "rotation_roll": rotation_roll,
+        "parent_component_name": parent_component_name,
+    })
+
+
+@blueprint_mcp.tool(
+    name="remove_component_from_blueprint",
+    description=(
+        "Removes a component from a Blueprint's SCS by its variable name. "
+        "Children of the removed node are promoted to the removed node's parent (safe remove). "
+        "Use list_blueprint_components first to find the correct variable name."
+    ),
+    tags={"unreal", "blueprint", "component", "remove", "delete", "write"}
+)
+async def remove_component_from_blueprint(
+    asset_path: Annotated[str, Field(description="Path to the Blueprint asset.")],
+    component_name: Annotated[str, Field(description="Variable name of the component to remove.")]
+) -> dict:
+    return await send_unreal_action(BP_ACTIONS_MODULE, {
+        "asset_path": asset_path,
+        "component_name": component_name,
+    })
+
+
+@blueprint_mcp.tool(
+    name="set_component_property",
+    description=(
+        "Sets a property on a component template in a Blueprint's SCS. "
+        "The value must be a string representation accepted by Unreal's property import: "
+        "vectors as '(X=0,Y=0,Z=100)', bools as 'True'/'False', floats as '50.0'. "
+        "Use list_blueprint_components to find the correct component_name first."
+    ),
+    tags={"unreal", "blueprint", "component", "property", "set", "write"}
+)
+async def set_component_property(
+    asset_path: Annotated[str, Field(description="Path to the Blueprint asset.")],
+    component_name: Annotated[str, Field(description="Variable name of the target component.")],
+    property_name: Annotated[str, Field(description="Property name (C++ name, e.g. 'SphereRadius', 'RelativeLocation').")],
+    value: Annotated[str, Field(description="String representation of the value (e.g. '50.0', '(X=0,Y=0,Z=100)').")]
+) -> dict:
+    return await send_unreal_action(BP_ACTIONS_MODULE, {
+        "asset_path": asset_path,
+        "component_name": component_name,
+        "property_name": property_name,
+        "value": value,
+    })
